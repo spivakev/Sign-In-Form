@@ -19,7 +19,7 @@ const FormWrapper = styled.div`
 class App extends React.PureComponent {
   render() {
     return (
-      <Router>
+      <Router basename={window.location.pathname || ''}>
         <Route path="/users" component={Users} />
         <Route exact path="/" component={Authorization} />
       </Router>
