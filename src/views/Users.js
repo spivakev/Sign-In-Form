@@ -7,9 +7,17 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
 
-  box-sizing: border-box;
-  padding: 0 25px; 
-  width: 100%;
+  box-sizing: border-box; 
+  margin: 0 auto;
+
+  @media ${device.tablet} { 
+    padding: 0 25px; 
+    width: 1100px;
+  }
+
+  @media ${device.mobile} { 
+    padding: 0 10px;
+  }
 `
 
 const TitleWrapper = styled.div`
@@ -17,21 +25,28 @@ const TitleWrapper = styled.div`
   
   @media ${device.tablet} { 
     margin-top: 25px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
 
   @media ${device.mobile} { 
     margin-top: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
   }
 `
 
 const Title = styled.h2`
   padding: 0;
   margin: 0;
-  font-size: 35px;
   font-weight: normal;
   color: ${props => props.theme.primaryColor};
+
+  @media ${device.tablet} { 
+    font-size: 35px;
+  }
+
+  @media ${device.mobile} { 
+    font-size: 33px;
+  }
 `
 
 

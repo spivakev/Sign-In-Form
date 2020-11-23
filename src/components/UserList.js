@@ -2,19 +2,23 @@ import React from 'react'
 import User from './User'
 import styled from 'styled-components'
 import { device } from '../config/device';
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css"
+import Loader from 'react-loader-spinner'
 
 const Input = styled.input`
   box-sizing: border-box;
   border: 0;
   border-bottom: 1px solid ${props => props.theme.teriaryColor};
-  width: 25%;
 
   @media ${device.tablet} { 
     padding: 10px 15px;
+    min-width: 220px;
   }
 
   @media ${device.mobile} { 
+    font-size: 14px;
     padding: 7px 15px;
+    min-width: 200px;
   }
 
    &:focus {
@@ -25,7 +29,7 @@ const Input = styled.input`
 
 const InputWrapper = styled.div`
   @media ${device.tablet} { 
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 
   @media ${device.mobile} { 
@@ -34,15 +38,24 @@ const InputWrapper = styled.div`
 `
 
 const Table = styled.table`
-   border-collapse: collapse;
+  border-collapse: collapse;
+   
 `
-
 
 const TableHeader = styled.th`
   border: 1px solid #${props => props.theme.tableHeaderColor};
-  padding: 10px 15px;
+  padding: 11px 15px;
   background-color: ${props => props.theme.tableHeaderColor};
   color: ${props => props.theme.buttonFontColor};
+`
+
+const Text = styled.p`
+  text-align: center;
+`
+
+const LoaderWrapper = styled.p`
+  margin-top: 30px;
+  text-align: center;
 `
 
 
@@ -54,8 +67,8 @@ class UserList extends React.Component {
       users: [],
       filteredUsers: [],
       usernameFilter: '',
+      loading: true //отвечает за отображение Loader'а
     }
-
     this.handleChange = this.handleChange.bind(this);
   }
 
@@ -63,23 +76,18 @@ class UserList extends React.Component {
     this.getUsers();
   }
 
-  async getUsers() {
+  async getUsers() { //метод получения списка пользователей с сервера
     let url = 'http://emphasoft-test-assignment.herokuapp.com/api/v1/users/';
-    let users = null;
 
-    let token = null; // объявляем локальную переменную token
+    let token = null;
 
-    if (localStorage.tokenData) { // если в localStorage присутствует tokenData, то берем её
+    //проверяем, была ли до этого авторизация (сохранен ли токен в localStorage)
+    if (localStorage.tokenData) {
       token = JSON.parse(localStorage.tokenData);
-      console.log(`Токен из local storage ${token}`)
     } else {
-      console.log('Токен не найден в local storage')
-      //return window.location.replace(loginUrl); //loginUrl = '/' //если токен отсутствует, то перенаправляем пользователя на страницу авторизации
+      console.log('Токен не найден в local storage') //если токен не найден, перенаправляем на страницу авторизации
+      return window.location.replace('/');
     }
-
-    //access_token: 781bd9f1de084f4daa7ba2aa8a71a2eab855354e
-    //'test_super',
-    //'Nf<U4f<rDbtDxAPn',
 
     let options = {
       method: 'GET',
@@ -89,51 +97,47 @@ class UserList extends React.Component {
       },
     };
 
+    //если токен найден, помещаем его в заголовок запроса
     if (token) { options.headers.Authorization = `Token ${token}`; }
-
-    console.log('Из header:\n', options.headers.Authorization)
 
     let response = await fetch(url, options);
     let result = response.json()
 
     let usersList = [];
 
-    if (response.ok) {
+    if (response.status === 200) { //если запрос выполнен успешно (список пользователей получен)
       result.then(function (data) {
         for (let item in data) {
-          usersList.push(data[item])
+          usersList.push(data[item]) // сохраняем в массив полученные объекты
         }
-
       }).then((data) => {
-        let sortedArray = this.sortById(usersList.slice()); //// закончила тут
+        let sortedArray = this.sortById(usersList.slice());  //сортируем массив пользователей по Id
         this.setState({
-          users: sortedArray,
-          filteredUsers: sortedArray
+          users: sortedArray,   //сохраняем отсортированный массив пользователей
+          filteredUsers: sortedArray,
+          loading: false
         });
-        console.log('users = ', this.state.users);
       }
-
       );
     } else {
       console.log('Список пользователей не был получен')
     }
   }
 
-  sortById(arr) {
+  sortById(arr) { // метод для сортировки массива пользователей по id
     arr.sort((a, b) => a.id > b.id ? 1 : -1);
     return arr.slice()
   }
 
-  handleChange(event) {
+  handleChange(event) { //обработка ввода в поле фильтрации
     let name = event.target.name;
     let value = event.target.value;
 
     this.setState({ [name]: value });
-    console.log('this.state[name]', this.state[name])
     this.filterByUsername(value);
   }
 
-  filterByUsername(filter) {
+  filterByUsername(filter) { //метод для фильтрации списка пользователей по значению, введенному в поле фильтрации
     let filteredArr = this.state.users.filter((user) => user.username.indexOf(filter) !== -1)
     this.setState({ filteredUsers: filteredArr.slice() })
   }
@@ -143,8 +147,6 @@ class UserList extends React.Component {
       <User key={user.id} user={user} />
     )
 
-    //Enter a part of the username
-    //Filter by username...
     return (
       <>
         <InputWrapper>
@@ -166,8 +168,12 @@ class UserList extends React.Component {
           <tbody>
             {allUsers}
           </tbody>
-
         </Table>
+        <LoaderWrapper>
+          {this.state.loading && <Loader type="Oval" color="#83a296" timeout={2000} height={60} width={60} />}
+        </LoaderWrapper>
+
+        {this.state.filteredUsers.length === 0 && !this.state.loading && <Text>Username that contains <b>'{this.state.usernameFilter}'</b> not found</Text>}
       </>
     )
   }

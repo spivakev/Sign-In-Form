@@ -92,7 +92,11 @@ const Input = styled.input`
     padding: 7px 15px;
   }
 
-   &:focus {
+  &.has-error {
+    border-bottom: 1px solid ${props => props.theme.errorColor};
+  }
+
+  &:focus {
     outline: none;
     border-bottom: 1px solid ${props => props.theme.primaryColor};
   }
@@ -161,8 +165,6 @@ const StyledLink = styled.a`
 `
 
 
-
-
 export default class AuthorizationForm extends Component {
   constructor(props) {
     super(props);
@@ -170,40 +172,72 @@ export default class AuthorizationForm extends Component {
     this.state = {
       username: '', //'test_super',
       password: '', //'Nf<U4f<rDbtDxAPn',
-      formErrors: { username: '', password: '' },
+      formErrors: { username: '', password: '' }, // Тексты подсказок для невалидных полей (если они есть)
       usernameValid: false,
       passwordValid: false,
       formValid: false,
-      errorMessage: '',
+      errorMessage: '', //Текст ошибки валидации, который будет отображаться
       redirect: ''
     }
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.checkUser = this.checkUser.bind(this);///////
-    this.validate = this.validate.bind(this);///////
   }
 
-  handleChange(event) {
+  handleChange(event) { // Метод обработки ввода логина или пароля
     let name = event.target.name;
     let value = event.target.value;
 
-    this.setState({ [name]: value } /*,
-      () => { this.validateField(name, value) }*/);
+    this.setState({ [name]: value }); //Сохраняем введенное в input значение
   }
 
-  handleSubmit(event) {
-    this.setState({ submitted: true });
+  handleSubmit(event) { //Запускаем валидацию при нажатии кнопки
     event.preventDefault();
     this.validateForm()
-    console.log('formValid', this.state.formValid)
-    if (this.state.formValid) {
-      this.checkUser();
-    }
+  }
+
+  validateForm() {
+    let validationErrors = this.state.formErrors;
+    let usernameValid = this.state.usernameValid;
+    let passwordValid = this.state.passwordValid;
+
+    //Проверяем валидность логина. Если логин не соответствует условию, сохраняем текст подсказки, которую будем отображать пользователю
+    if (!this.state.username) {
+      validationErrors.username = 'Введите логин'
+    } else if (this.state.username.length < 1 || this.state.username.length > 20) {
+      validationErrors.username = 'Логин должен содержать от 1 до 20 символов';
+    } else if (/^[a-zA-Z1-9-_]+$/.test(this.state.username) === false) {
+      validationErrors.username = 'Логин может содержать только латинские буквы, цифры, тире или знак подчеркивания';
+    } else if (parseInt(this.state.username.substr(0, 1))) {
+      validationErrors.username = 'Логин должен начинаться с буквы';
+    } else validationErrors.username = ''
+
+    //Проверяем валидность пароля
+    validationErrors.password = (!this.state.password) ? 'Введите пароль' : ''
+
+    //Поля валидны, если не было сохранено ни одного текста подсказки
+    usernameValid = (validationErrors.username === '') ? true : false;
+    passwordValid = (validationErrors.password === '') ? true : false;
+
+    //Если невалидны и логин и пароль, то отображаем текст подсказки для логина
+    let errorToShow = (validationErrors.username) ? validationErrors.username : validationErrors.password;
+
+    //Сохраняем результаты валидации
+    this.setState({
+      formErrors: validationErrors,
+      usernameValid: usernameValid,
+      passwordValid: passwordValid,
+      formValid: usernameValid && passwordValid,
+      errorMessage: errorToShow
+    }, () => {
+      if (this.state.formValid) { //Если форма валидна, отправляем запрос на сервер
+        this.logIn();
+      }
+    })
   }
 
 
-  async checkUser() {
+  async logIn() { //Отправка запроса на сервер для аутентификации
     let url = 'http://emphasoft-test-assignment.herokuapp.com/api-token-auth/';
     let data = {
       "username": this.state.username,
@@ -213,7 +247,6 @@ export default class AuthorizationForm extends Component {
     let options = {
       method: 'POST',
       headers: {
-        //'Accept': 'application/json', //
         'Content-Type': 'application/json;charset=utf-8'
       },
       body: JSON.stringify(data)
@@ -222,67 +255,27 @@ export default class AuthorizationForm extends Component {
     let response = await fetch(url, options);
     let result = await response.json();
 
+    // Если запрос выполнен успешно, сохраняем токен в LocalStorage и перенаправляем на страницу со списком пользователей
     if (response.status === 200) {
-      this.setState({
-        access_token: result['token']
-      })
-
       this.saveToken(result['token']);
       this.setState({ redirect: '/users' })
-
     } else {
-      this.setState({ errorMessage: 'Неверное имя пользователя или пароль' })
+      //Если запрос такое сочетание логин+пароль не найдено, отображаем пользователю подсказку
+      this.setState({
+        errorMessage: 'Неверное имя пользователя или пароль'
+      })
     }
   }
 
+  //сохранение токена в localStorage
   saveToken(token) {
     localStorage.setItem('tokenData', JSON.stringify(token));
   }
 
+  //добавляем класс для невалидных полей input 
   errorClass(error) {
     return (!error ? '' : 'has-error');
   }
-
-  validate() {
-    let usernameError = '';
-
-    if (!this.state.username) {
-      usernameError = 'Введите логин'
-    } else if (this.state.username.length < 1 || this.state.username.length > 20) {
-      usernameError = 'Логин должен содержать от 1 до 20 символов';
-    } else if (/^[a-zA-Z1-9-_]+$/.test(this.state.username) === false) {
-      usernameError = 'Логин может содержать только латинские буквы, цифры, тире или знак подчеркивания';
-    } else if (parseInt(this.state.username.substr(0, 1))) {
-      usernameError = 'Логин должен начинаться с буквы';
-    } else usernameError = ''
-
-    let passwordError = (!this.state.password) ? 'Введите пароль' : ''
-    let validUsername = (usernameError) ? false : true;
-    let validPassword = (passwordError) ? false : true;
-    let errorToShow = (usernameError) ? usernameError : passwordError; // вынести в отдельную функцию?
-
-    console.log('username: ', this.state.username, passwordError)
-    console.log('password: ', this.state.password, passwordError)
-
-    this.setState({
-      formErrors: {
-        username: usernameError,
-        password: passwordError
-      },
-      usernameValid: validUsername,
-      passwordValid: validPassword,
-      formValid: validUsername && validPassword,
-      errorMessage: errorToShow
-    })
-  }
-
-
-  validateForm() {
-    this.validate();
-    console.log('this.state', this.state)
-    this.setState({ formValid: this.state.usernameValid && this.state.passwordValid });
-  }
-
 
 
   render() {
