@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/Sign-In-Form/static/css/main.6dea0f05.chunk.css",
+    "main.js": "/Sign-In-Form/static/js/main.34dc1c8b.chunk.js",
+    "main.js.map": "/Sign-In-Form/static/js/main.34dc1c8b.chunk.js.map",
+    "runtime-main.js": "/Sign-In-Form/static/js/runtime-main.e197ba40.js",
+    "runtime-main.js.map": "/Sign-In-Form/static/js/runtime-main.e197ba40.js.map",
+    "static/css/2.f2c13908.chunk.css": "/Sign-In-Form/static/css/2.f2c13908.chunk.css",
+    "static/js/2.071f3063.chunk.js": "/Sign-In-Form/static/js/2.071f3063.chunk.js",
+    "static/js/2.071f3063.chunk.js.map": "/Sign-In-Form/static/js/2.071f3063.chunk.js.map",
+    "static/js/3.86653ece.chunk.js": "/Sign-In-Form/static/js/3.86653ece.chunk.js",
+    "static/js/3.86653ece.chunk.js.map": "/Sign-In-Form/static/js/3.86653ece.chunk.js.map",
+    "index.html": "/Sign-In-Form/index.html",
+    "static/css/2.f2c13908.chunk.css.map": "/Sign-In-Form/static/css/2.f2c13908.chunk.css.map",
+    "static/css/main.6dea0f05.chunk.css.map": "/Sign-In-Form/static/css/main.6dea0f05.chunk.css.map",
+    "static/js/2.071f3063.chunk.js.LICENSE.txt": "/Sign-In-Form/static/js/2.071f3063.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.e197ba40.js",
+    "static/css/2.f2c13908.chunk.css",
+    "static/js/2.071f3063.chunk.js",
+    "static/css/main.6dea0f05.chunk.css",
+    "static/js/main.34dc1c8b.chunk.js"
+  ]
+}
